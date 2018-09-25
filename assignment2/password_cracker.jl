@@ -17,11 +17,21 @@ end
 test()
 
 # Load userdata in format: username, salt, hash.
-# Values are separated by tab.
-userdata = readlines("userdata.txt")
-#TODO: split value by tab
+# Values are separated by tab '\t'.
+const userdata = map.(String, split.(readlines("userdata.txt"), '\t'))
 
-# TODO: load common words from /usr/share/dict/...
-words = readlines("/usr/share/dict/cracklib-small")
+# load common words from /usr/share/dict/...
+const words = readlines("/usr/share/dict/words")
 
-# TODO: start cracking
+# Start cracking
+function cracker()
+    for (username, salt, hash_value) in userdata
+        for password in words
+            if hash(password, salt) == hash_value
+                println(username, " ", password)
+            end
+        end
+    end
+end
+
+@time cracker()
