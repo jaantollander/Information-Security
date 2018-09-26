@@ -8,7 +8,6 @@ end
 function hash_eq(password::String, salt::String, hash_value::Array{UInt8,1})::Bool
     hash_quess = sha256(string("potplantspw", password, salt))
     # Test equality between hash_quess and hash_value.
-    # TODO: hash_quess == hash_value ? is the performance the same?
     for i in 1:16
         if hash_quess[i] != hash_value[i]
             return false
@@ -18,20 +17,33 @@ function hash_eq(password::String, salt::String, hash_value::Array{UInt8,1})::Bo
 end
 
 # Test with student data
-function test()
-    student_password = "knEeGPyr"
-    student_salt = "d3bc139dafa7d4e9"
-    student_hash = "7a00b42ac911a8603dd4cdbba662cdf2"
+function test(test_password, test_salt, test_hash)
+    hash(test_password, test_salt) == test_hash || error("Something is wrong.")
+    test_hash_bytes = hex2bytes(test_hash)
+    hash_eq(test_password, test_salt, test_hash_bytes) || error("hash_eq is not working.")
 
-    hash(student_password, student_salt) == student_hash || error("Something is wrong.")
-    student_hash_hex = hex2bytes(student_hash)
-    hash_eq(student_password, student_salt, student_hash_hex) || error("hash_eq is not working.")
-
-    @time hash(student_password, student_salt) == student_hash
-    @time hash_eq(student_password, student_salt, student_hash_hex)
+    @time hash(test_password, test_salt) == test_hash
+    @time hash_eq(test_password, test_salt, test_hash_bytes)
 end
 
-test()
+const student_password = "knEeGPyr"
+const student_salt = "d3bc139dafa7d4e9"
+const student_hash = "7a00b42ac911a8603dd4cdbba662cdf2"
+const student_hash_bytes = hex2bytes("7a00b42ac911a8603dd4cdbba662cdf2")
+println("Testing student password, salt and hash.")
+test(student_password, student_salt, student_hash)
+
+# Benchmark
+function benchmark(iterations::Int)
+    for i in 1:iterations
+        hash_eq(student_password, student_salt, student_hash_bytes)
+    end
+end
+
+benchmark(1)
+iterations=10^6
+println("Time for ", iterations, " iteration.")
+@time benchmark(iterations)
 
 # Load userdata in format: username, salt, hash.
 # Values are separated by tab '\t'.
@@ -77,4 +89,4 @@ function cracker()
     end
 end
 
-cracker()
+# cracker()
