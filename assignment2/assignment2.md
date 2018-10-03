@@ -62,7 +62,11 @@ SQL injection string to acquire the schema of a table:
 
 Output:
 ```sql
-CREATE TABLE users ( id INTEGER NOT NULL, username VARCHAR(50) NOT NULL, salt VARCHAR(100) NOT NULL, password VARCHAR(100) NOT NULL, PRIMARY KEY (id) )
+CREATE TABLE users (
+  id INTEGER NOT NULL,
+  username VARCHAR(50) NOT NULL,
+  salt VARCHAR(100) NOT NULL,
+  password VARCHAR(100) NOT NULL, PRIMARY KEY (id) )
 ```
 
 
@@ -74,15 +78,6 @@ CREATE TABLE users ( id INTEGER NOT NULL, username VARCHAR(50) NOT NULL, salt VA
 
 
 ## Part C. Password cracking
-
-```julia
-using SHA
-
-function hash(password::String, salt::String)
-    bytes2hex(sha256(string("potplantspw", password, salt)))[1:32]
-end
-```
-
 Wordlists used for the dictionary attack
 
 - `/usr/share/dict/words`
